@@ -1,3 +1,7 @@
+# Git
+.git
+.gitignore
+
 # Binaries
 *.exe
 *.dll
@@ -22,6 +26,3 @@ go.work.sum
 /scraper
 /output/
 /colly_cache/
-
-# VHS demo script (local only)
-demo.tape

@@ -6,6 +6,8 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Author](https://img.shields.io/badge/by-RLFreddy-gray?logo=github)](https://github.com/RLFreddy)
 
+![Demo](assets/demo.gif)
+
 > A concurrent data acquisition engine built in Go. Extracts, processes, and serializes market capitalization data from companiesmarketcap.com with caching and race-condition-safe output.
 
 ## Overview
