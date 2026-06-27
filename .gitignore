@@ -1,0 +1,24 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Test artifacts
+*.out
+coverage.*
+
+# Go workspace
+go.work
+go.work.sum
+
+# Env
+.env
+
+# Custom
+/scraper
+/output/
+/colly_cache/
