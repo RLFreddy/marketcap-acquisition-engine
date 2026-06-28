@@ -26,7 +26,12 @@ func ExportToCSV(companies []domain.Company, fileName string) error {
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
-	defer writer.Flush()
+	defer func() {
+		writer.Flush()
+		if err := writer.Error(); err != nil {
+			logger.Error("CSV flush error: %v", err)
+		}
+	}()
 
 	// Write Headers
 	headers := []string{"Rank", "Name", "Market Cap", "Price", "Today", "Country"}
