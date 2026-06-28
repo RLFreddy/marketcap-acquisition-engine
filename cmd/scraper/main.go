@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"marketcap-acquisition-engine/internal/config"
@@ -23,10 +27,13 @@ func main() {
 	}
 	cfg = config.MergeWithFlags(cfg, *pagesFlag)
 
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	logger.Info("MarketCap Acquisition Engine")
 	logger.Info("Target: %d pages (0 = dynamic)", cfg.Scraper.Pages)
 
-	companies, err := scraper.RunScraper(cfg)
+	companies, err := scraper.RunScraper(ctx, cfg)
 	if err != nil {
 		logger.Fatal("Data extraction failed: %v", err)
 	}

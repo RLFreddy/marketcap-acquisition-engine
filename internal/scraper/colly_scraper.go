@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"context"
 	"fmt"
 	"html"
 	"math"
@@ -30,7 +31,7 @@ func sanitize(s string) string {
 	return s
 }
 
-func RunScraper(cfg *config.Config) ([]domain.Company, error) {
+func RunScraper(ctx context.Context, cfg *config.Config) ([]domain.Company, error) {
 	var companies []domain.Company
 	var mu sync.Mutex
 
@@ -154,6 +155,10 @@ func RunScraper(cfg *config.Config) ([]domain.Company, error) {
 	})
 
 	c.OnRequest(func(r *colly.Request) {
+		if ctx.Err() != nil {
+			r.Abort()
+			return
+		}
 		logger.Trace("Requesting: %s", r.URL.String())
 		r.Headers.Set("User-Agent", userAgent)
 	})
@@ -177,7 +182,18 @@ func RunScraper(cfg *config.Config) ([]domain.Company, error) {
 	}
 
 	logger.Info("Waiting for concurrent requests to finish...")
-	c.Wait()
+
+	done := make(chan struct{})
+	go func() {
+		c.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-ctx.Done():
+		logger.Warn("Shutdown signal received, stopping scraper")
+	}
 
 	return companies, nil
 }
