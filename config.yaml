@@ -1,0 +1,29 @@
+# Scraper settings
+scraper:
+  # Target base URL
+  base_url: "https://companiesmarketcap.com"
+
+  # Number of pages to scrape. 0 = auto-detect all pages via pagination
+  pages: 0
+
+  # Cache TTL for HTTP responses. Accepts Go duration format (h, m, s).
+  # Reduces requests on repeated runs.
+  cache_ttl: 24h
+
+  # Random delay between requests. Helps avoid rate limiting.
+  # Accepts Go duration format (ms, s, m).
+  delay: 500ms
+
+  # Number of concurrent workers. 0 = auto (NumCPU * 2).
+  workers: 0
+
+  # User-Agent header sent with each request
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+
+# Output settings
+output:
+  # Directory where CSV files are written
+  dir: "."
+
+  # Prefix for the output filename (final: {prefix}{date}.csv)
+  filename_prefix: "companies_"
