@@ -24,6 +24,14 @@ const (
 	defaultCacheTTL  = 24 * time.Hour
 )
 
+type collyScraper struct {
+	collector *colly.Collector
+}
+
+func New() *collyScraper {
+	return &collyScraper{}
+}
+
 func sanitize(s string) string {
 	s = strings.TrimSpace(s)
 	s = html.UnescapeString(s)
@@ -31,12 +39,15 @@ func sanitize(s string) string {
 	return s
 }
 
-func RunScraper(ctx context.Context, cfg *config.Config) ([]domain.Company, error) {
+func (s *collyScraper) Run(ctx context.Context, cfg *config.Config) ([]domain.Company, error) {
 	var companies []domain.Company
 	var mu sync.Mutex
 
 	var extractedPages int32
 	targetPages := cfg.Scraper.Pages
+	if targetPages < 0 {
+		targetPages = 0
+	}
 	var totalNumPages int32 = int32(targetPages)
 
 	cacheTTL := cfg.Scraper.CacheTTL
@@ -44,12 +55,15 @@ func RunScraper(ctx context.Context, cfg *config.Config) ([]domain.Company, erro
 		cacheTTL = defaultCacheTTL
 	}
 
-	c := colly.NewCollector(
-		colly.AllowedDomains("companiesmarketcap.com"),
-		colly.Async(true),
-		colly.CacheDir("./colly_cache"),
-		colly.CacheExpiration(cacheTTL),
-	)
+	c := s.collector
+	if c == nil {
+		c = colly.NewCollector(
+			colly.AllowedDomains("companiesmarketcap.com"),
+			colly.Async(true),
+			colly.CacheDir("./colly_cache"),
+			colly.CacheExpiration(cacheTTL),
+		)
+	}
 
 	numCores := runtime.NumCPU()
 	workers := cfg.Scraper.Workers

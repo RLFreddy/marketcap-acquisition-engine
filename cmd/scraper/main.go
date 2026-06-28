@@ -33,7 +33,7 @@ func main() {
 	logger.Info("MarketCap Acquisition Engine")
 	logger.Info("Target: %d pages (0 = dynamic)", cfg.Scraper.Pages)
 
-	companies, err := scraper.RunScraper(ctx, cfg)
+	companies, err := scraper.New().Run(ctx, cfg)
 	if err != nil {
 		logger.Fatal("Data extraction failed: %v", err)
 	}
