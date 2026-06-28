@@ -42,5 +42,7 @@ func Trace(format string, a ...interface{}) {
 // Fatal logs an error message and terminates the program
 func Fatal(format string, a ...interface{}) {
 	errorColor.Printf(format+"\n", a...)
+	os.Stdout.Sync()
+	os.Stderr.Sync()
 	os.Exit(1)
 }
