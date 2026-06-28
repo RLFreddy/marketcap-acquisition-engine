@@ -26,8 +26,8 @@ const (
 
 func sanitize(s string) string {
 	s = strings.TrimSpace(s)
-	s = strings.Trim(s, "\"")
 	s = html.UnescapeString(s)
+	s = strings.Trim(s, "\"")
 	return s
 }
 
