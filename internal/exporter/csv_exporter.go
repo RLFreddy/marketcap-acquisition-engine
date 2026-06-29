@@ -13,7 +13,7 @@ import (
 // ExportToCSV sorts the given companies by Rank and writes them to the specified CSV file.
 func ExportToCSV(companies []domain.Company, fileName string) error {
 	logger.Info("Sorting %d companies for CSV export...", len(companies))
-	
+
 	// Sort by Rank
 	sort.Slice(companies, func(i, j int) bool {
 		return companies[i].Rank < companies[j].Rank
