@@ -35,13 +35,16 @@ func testCollector() *colly.Collector {
 	return colly.NewCollector(colly.AllowURLRevisit())
 }
 
-func testConfig(tsURL string) *config.Config {
+func testConfig() *config.Config {
 	cfg := config.Default()
-	cfg.Scraper.BaseURL = tsURL
 	cfg.Scraper.Pages = 1
 	cfg.Scraper.Delay = 0
 	cfg.Scraper.Workers = 1
 	return cfg
+}
+
+func testScraper(tsURL string) *collyScraper {
+	return &collyScraper{collector: testCollector(), baseURL: tsURL}
 }
 
 func TestScraper_ParsesCompanies(t *testing.T) {
@@ -50,8 +53,8 @@ func TestScraper_ParsesCompanies(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	s := &collyScraper{collector: testCollector()}
-	companies, err := s.Run(context.Background(), testConfig(ts.URL))
+	s := testScraper(ts.URL)
+	companies, err := s.Run(context.Background(), testConfig())
 	if err != nil {
 		t.Fatalf("Run failed: %v", err)
 	}
@@ -110,8 +113,8 @@ func TestScraper_DynamicPages(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	s := &collyScraper{collector: testCollector()}
-	cfg := testConfig(ts.URL)
+	s := testScraper(ts.URL)
+	cfg := testConfig()
 	cfg.Scraper.Pages = 0
 	cfg.Scraper.Workers = 1
 
@@ -134,8 +137,8 @@ func TestScraper_ContextCancellation(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	s := &collyScraper{collector: testCollector()}
-	cfg := testConfig(ts.URL)
+	s := testScraper(ts.URL)
+	cfg := testConfig()
 	cfg.Scraper.Delay = 0
 
 	resultCh := make(chan error, 1)
@@ -163,8 +166,8 @@ func TestScraper_EmptyTable(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	s := &collyScraper{collector: testCollector()}
-	companies, err := s.Run(context.Background(), testConfig(ts.URL))
+	s := testScraper(ts.URL)
+	companies, err := s.Run(context.Background(), testConfig())
 	if err != nil {
 		t.Fatalf("Run failed: %v", err)
 	}
@@ -179,8 +182,8 @@ func TestScraper_MalformedHTML(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	s := &collyScraper{collector: testCollector()}
-	companies, err := s.Run(context.Background(), testConfig(ts.URL))
+	s := testScraper(ts.URL)
+	companies, err := s.Run(context.Background(), testConfig())
 	if err != nil {
 		t.Fatalf("Run failed: %v", err)
 	}
@@ -195,8 +198,8 @@ func TestScraper_SkipPagesLessThanTwoRows(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	s := &collyScraper{collector: testCollector()}
-	companies, err := s.Run(context.Background(), testConfig(ts.URL))
+	s := testScraper(ts.URL)
+	companies, err := s.Run(context.Background(), testConfig())
 	if err != nil {
 		t.Fatalf("Run failed: %v", err)
 	}

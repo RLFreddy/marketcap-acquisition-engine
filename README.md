@@ -48,23 +48,31 @@ The scraper looks for `config.yaml` in this order:
 - `./config.yaml` (local development)
 - `/etc/scraper/config.yaml` (Docker mount)
 
-If neither is found, built-in defaults are used.
+If neither is found, built-in defaults are used — **it runs with zero configuration**.
 
-```yaml
-scraper:
-  base_url: "https://companiesmarketcap.com"
-  pages: 0
-  workers: 0
-  delay: 500ms
-  cache_dir: "./colly_cache"
-  cache_ttl: 24h
-  retry_count: 3
-  retry_delay: 1s
+To customize:
 
-output:
-  dir: "."
-  filename_prefix: "companies_"
+```bash
+cp config.example.yaml config.yaml
 ```
+
+Then edit only the values you want to override. See [`config.example.yaml`](config.example.yaml) for the full reference template with all defaults documented.
+
+| Field | Default | Description |
+|---|---|---|
+| `pages` | `0` | Pages to scrape. `0` = auto-detect all |
+| `workers` | `0` | Concurrent workers. `0` = auto (NumCPU × 2) |
+| `delay` | `500ms` | Random delay between requests |
+| `cache_ttl` | `24h` | HTTP cache TTL. `0` = never expire |
+| `cache_dir` | `"./colly_cache"` | Cache directory. Empty = no cache |
+| `retry_count` | `3` | Max retries on failure. `0` = no retry |
+| `retry_delay` | `1s` | Base delay for retry backoff |
+| `user_agent` | `Mozilla/5.0 ...` | User-Agent header |
+| `dir` | `"."` | CSV output directory |
+| `filename_prefix` | `"companies_"` | CSV filename prefix |
+
+> **Validation:** all numeric fields are checked at startup. Negative values
+> and unknown YAML keys are rejected with a clear error — no silent misbehavior.
 
 ## Commands
 

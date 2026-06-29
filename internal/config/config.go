@@ -1,28 +1,29 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Scraper ScraperConfig `yaml:"scraper"`
+	Scraper ScraperConfig `yaml:"scraper" validate:"required"`
 	Output  OutputConfig  `yaml:"output"`
 }
 
 type ScraperConfig struct {
-	BaseURL    string        `yaml:"base_url"`
-	Pages      int           `yaml:"pages"`
-	CacheTTL   time.Duration `yaml:"cache_ttl"`
+	Pages      int           `yaml:"pages"      validate:"min=0"`
+	CacheTTL   time.Duration `yaml:"cache_ttl"  validate:"min=0"`
 	CacheDir   string        `yaml:"cache_dir"`
-	Delay      time.Duration `yaml:"delay"`
-	Workers    int           `yaml:"workers"`
+	Delay      time.Duration `yaml:"delay"      validate:"min=0"`
+	Workers    int           `yaml:"workers"    validate:"min=0"`
 	UserAgent  string        `yaml:"user_agent"`
-	RetryCount int           `yaml:"retry_count"`
-	RetryDelay time.Duration `yaml:"retry_delay"`
+	RetryCount int           `yaml:"retry_count" validate:"min=0"`
+	RetryDelay time.Duration `yaml:"retry_delay" validate:"min=0"`
 }
 
 type OutputConfig struct {
@@ -30,15 +31,20 @@ type OutputConfig struct {
 	FilenamePrefix string `yaml:"filename_prefix"`
 }
 
+var validate = validator.New()
+
+func (c *Config) Validate() error {
+	return validate.Struct(c)
+}
+
 func Default() *Config {
 	return &Config{
 		Scraper: ScraperConfig{
-			BaseURL:    "https://companiesmarketcap.com",
-			Pages:      0,
+			Pages:      0, // 0 = auto-detect all pages
 			CacheTTL:   24 * time.Hour,
 			CacheDir:   "./colly_cache",
 			Delay:      500 * time.Millisecond,
-			Workers:    0,
+			Workers:    0, // 0 = auto (NumCPU * 2)
 			UserAgent:  "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
 			RetryCount: 3,
 			RetryDelay: 1 * time.Second,
@@ -57,8 +63,13 @@ func Load(paths ...string) (*Config, error) {
 			continue
 		}
 		cfg := Default()
-		if err := yaml.Unmarshal(data, cfg); err != nil {
+		dec := yaml.NewDecoder(bytes.NewReader(data))
+		dec.KnownFields(true)
+		if err := dec.Decode(cfg); err != nil {
 			return nil, fmt.Errorf("%s: %w", p, err)
+		}
+		if err := cfg.Validate(); err != nil {
+			return nil, fmt.Errorf("%s: validation failed: %w", p, err)
 		}
 		return cfg, nil
 	}

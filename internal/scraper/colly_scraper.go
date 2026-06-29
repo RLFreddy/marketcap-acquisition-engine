@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"marketcap-acquisition-engine/internal/config"
 	"marketcap-acquisition-engine/internal/domain"
@@ -22,11 +21,12 @@ import (
 
 const (
 	companiesPerPage = 100
-	defaultCacheTTL  = 24 * time.Hour
+	defaultBaseURL   = "https://companiesmarketcap.com"
 )
 
 type collyScraper struct {
 	collector *colly.Collector
+	baseURL   string
 }
 
 func New() *collyScraper {
@@ -46,15 +46,9 @@ func (s *collyScraper) Run(ctx context.Context, cfg *config.Config) ([]domain.Co
 
 	var extractedPages int32
 	targetPages := cfg.Scraper.Pages
-	if targetPages < 0 {
-		targetPages = 0
-	}
 	var totalNumPages = int32(targetPages)
 
 	cacheTTL := cfg.Scraper.CacheTTL
-	if cacheTTL == 0 {
-		cacheTTL = defaultCacheTTL
-	}
 
 	c := s.collector
 	if c == nil {
@@ -72,17 +66,13 @@ func (s *collyScraper) Run(ctx context.Context, cfg *config.Config) ([]domain.Co
 		c.WithTransport(&retryablehttp.RoundTripper{Client: retryClient})
 	}
 
-	numCores := runtime.NumCPU()
 	workers := cfg.Scraper.Workers
 	if workers <= 0 {
-		workers = numCores * 2
+		workers = runtime.NumCPU() * 2
 	}
-	logger.Info("Detected %d logical cores. Assigning %d concurrent workers.", numCores, workers)
+	logger.Info("Detected %d logical cores. Assigning %d concurrent workers.", runtime.NumCPU(), workers)
 
 	delay := cfg.Scraper.Delay
-	if delay <= 0 {
-		delay = 500 * time.Millisecond
-	}
 
 	if err := c.Limit(&colly.LimitRule{
 		DomainGlob:  "*companiesmarketcap.com",
@@ -93,19 +83,15 @@ func (s *collyScraper) Run(ctx context.Context, cfg *config.Config) ([]domain.Co
 	}
 
 	userAgent := cfg.Scraper.UserAgent
-	if userAgent == "" {
-		userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-	}
-
-	baseURL := cfg.Scraper.BaseURL
+	baseURL := s.baseURL
 	if baseURL == "" {
-		baseURL = "https://companiesmarketcap.com"
+		baseURL = defaultBaseURL
 	}
 
 	var pagesOnce sync.Once
 
 	c.OnHTML("span.companies-count", func(e *colly.HTMLElement) {
-		if targetPages != 0 {
+		if targetPages > 0 {
 			return
 		}
 

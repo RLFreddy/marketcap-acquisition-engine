@@ -25,7 +25,11 @@ func main() {
 	defer cancel()
 
 	logger.Info("MarketCap Acquisition Engine")
-	logger.Info("Target: %d pages (0 = dynamic)", cfg.Scraper.Pages)
+	if cfg.Scraper.Pages == 0 {
+		logger.Info("Target: auto-detect pages (0)")
+	} else {
+		logger.Info("Target: %d pages", cfg.Scraper.Pages)
+	}
 
 	companies, err := scraper.New().Run(ctx, cfg)
 	if err != nil {

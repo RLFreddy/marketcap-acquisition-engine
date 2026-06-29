@@ -1,0 +1,48 @@
+# =============================================================================
+# config.example.yaml — Reference configuration for MarketCap Acquisition Engine
+# =============================================================================
+# Copy this file to config.yaml and uncomment only the values you want to
+# override. All defaults are defined in internal/config/config.go.
+#
+#   cp config.example.yaml config.yaml
+#
+# If config.yaml does not exist, the program runs with built-in defaults.
+# =============================================================================
+
+# scraper:
+#   # Number of pages to scrape. 0 = auto-detect all pages via pagination.
+#   # Set to a positive number (e.g. 5) for a fixed number of pages.
+#   pages: 0
+#
+#   # Cache TTL for HTTP responses. Accepts Go duration format (h, m, s).
+#   # 0 = never expire (cache permanently). Default: 24h
+#   # To disable caching, omit cache_dir.
+#   cache_ttl: 24h
+#
+#   # Directory for HTTP response cache
+#   cache_dir: "./colly_cache"
+#
+#   # Random delay between requests. Helps avoid rate limiting.
+#   # Accepts Go duration format (ms, s, m). Default: 500ms
+#   delay: 500ms
+#
+#   # Number of concurrent workers. 0 = auto (NumCPU * 2).
+#   workers: 0
+#
+#   # User-Agent header sent with each request
+#   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+#
+#   # Maximum number of retries on failed requests. 0 = no retry.
+#   # Uses exponential backoff: delay * 2^(attempt-1), caps at delay * 4.
+#   retry_count: 3
+#
+#   # Base delay for retry backoff. Accepts Go duration format (ms, s).
+#   retry_delay: 1s
+
+# output:
+#   # Directory where CSV files are written.
+#   # If empty, the file is created at the filesystem root. Default: "."
+#   dir: "."
+#
+#   # Prefix for the output filename (final: {prefix}{date}.csv)
+#   filename_prefix: "companies_"
