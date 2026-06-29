@@ -20,6 +20,17 @@ scraper:
   # User-Agent header sent with each request
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 
+  # Directory for HTTP response cache.
+  # Reduces requests on repeated runs.
+  cache_dir: "./colly_cache"
+
+  # Maximum number of retries on failed requests (0 = no retry).
+  # Uses exponential backoff: delay * 2^(attempt-1), caps at delay * 4.
+  retry_count: 3
+
+  # Base delay for retry backoff. Accepts Go duration format (ms, s).
+  retry_delay: 1s
+
 # Output settings
 output:
   # Directory where CSV files are written

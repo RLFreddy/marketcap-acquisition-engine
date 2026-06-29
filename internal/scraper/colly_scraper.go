@@ -17,6 +17,7 @@ import (
 	"marketcap-acquisition-engine/internal/logger"
 
 	"github.com/gocolly/colly/v2"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 const (
@@ -57,12 +58,18 @@ func (s *collyScraper) Run(ctx context.Context, cfg *config.Config) ([]domain.Co
 
 	c := s.collector
 	if c == nil {
+		retryClient := retryablehttp.NewClient()
+		retryClient.RetryMax = cfg.Scraper.RetryCount
+		retryClient.RetryWaitMin = cfg.Scraper.RetryDelay
+		retryClient.RetryWaitMax = cfg.Scraper.RetryDelay * 4
+
 		c = colly.NewCollector(
 			colly.AllowedDomains("companiesmarketcap.com"),
 			colly.Async(true),
-			colly.CacheDir("./colly_cache"),
+			colly.CacheDir(cfg.Scraper.CacheDir),
 			colly.CacheExpiration(cacheTTL),
 		)
+		c.WithTransport(&retryablehttp.RoundTripper{Client: retryClient})
 	}
 
 	numCores := runtime.NumCPU()
