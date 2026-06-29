@@ -1,15 +1,17 @@
+PKGS = ./cmd/... ./internal/...
+
 .PHONY: all lint test cover build clean
 
 all: lint test build
 
 lint:
-	golangci-lint run ./...
+	golangci-lint run $(PKGS)
 
 test:
-	go test -count=1 -race ./...
+	go test -count=1 -race $(PKGS)
 
 cover:
-	go test -count=1 -race -coverprofile=coverage.out ./...
+	go test -count=1 -race -coverprofile=coverage.out $(PKGS)
 	go tool cover -html=coverage.out -o coverage.html
 
 build:

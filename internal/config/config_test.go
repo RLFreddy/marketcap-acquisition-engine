@@ -70,35 +70,38 @@ func TestLoadFileNotFound(t *testing.T) {
 	}
 }
 
-func TestMergeWithFlags(t *testing.T) {
-	cfg := Default()
-	cfg.Scraper.Pages = 100
-
-	result := MergeWithFlags(cfg, 5)
-	if result.Scraper.Pages != 5 {
-		t.Errorf("expected pages 5 from flag override, got %d", result.Scraper.Pages)
+func TestLoadMultiplePaths(t *testing.T) {
+	content := []byte(`scraper:
+  pages: 10
+`)
+	first := t.TempDir() + "/first.yaml"
+	if err := os.WriteFile(first, content, 0644); err != nil {
+		t.Fatal(err)
 	}
-	if result != cfg {
-		t.Error("expected MergeWithFlags to return the same pointer")
+
+	cfg, err := Load(first, "/nonexistent/path.yaml")
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
 	}
-}
-
-func TestMergeWithFlagsZero(t *testing.T) {
-	cfg := Default()
-	cfg.Scraper.Pages = 100
-
-	result := MergeWithFlags(cfg, 0)
-	if result.Scraper.Pages != 100 {
-		t.Errorf("expected pages 100 unchanged when flag is 0, got %d", result.Scraper.Pages)
+	if cfg.Scraper.Pages != 10 {
+		t.Errorf("expected pages 10, got %d", cfg.Scraper.Pages)
 	}
 }
 
-func TestMergeWithFlagsNil(t *testing.T) {
-	result := MergeWithFlags(nil, 5)
-	if result == nil {
-		t.Fatal("expected non-nil result")
+func TestLoadFallbackToNextPath(t *testing.T) {
+	content := []byte(`scraper:
+  pages: 7
+`)
+	second := t.TempDir() + "/second.yaml"
+	if err := os.WriteFile(second, content, 0644); err != nil {
+		t.Fatal(err)
 	}
-	if result.Scraper.Pages != 5 {
-		t.Errorf("expected pages 5, got %d", result.Scraper.Pages)
+
+	cfg, err := Load("/nonexistent/path.yaml", second)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if cfg.Scraper.Pages != 7 {
+		t.Errorf("expected pages 7 from fallback, got %d", cfg.Scraper.Pages)
 	}
 }

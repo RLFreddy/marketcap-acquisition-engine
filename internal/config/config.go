@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -49,25 +50,17 @@ func Default() *Config {
 	}
 }
 
-func Load(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
+func Load(paths ...string) (*Config, error) {
+	for _, p := range paths {
+		data, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		cfg := Default()
+		if err := yaml.Unmarshal(data, cfg); err != nil {
+			return nil, fmt.Errorf("%s: %w", p, err)
+		}
+		return cfg, nil
 	}
-
-	cfg := Default()
-	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
-func MergeWithFlags(cfg *Config, pages int) *Config {
-	if cfg == nil {
-		cfg = Default()
-	}
-	if pages != 0 {
-		cfg.Scraper.Pages = pages
-	}
-	return cfg
+	return nil, fmt.Errorf("no config file found (tried: %v)", paths)
 }

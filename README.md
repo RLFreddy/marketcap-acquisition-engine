@@ -1,70 +1,68 @@
 # MarketCap Acquisition Engine
 
 [![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev)
-[![Colly](https://img.shields.io/badge/Framework-Colly-blue)](#)
+[![CI](https://github.com/RLFreddy/marketcap-acquisition-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/RLFreddy/marketcap-acquisition-engine/actions)
+[![golangci-lint](https://img.shields.io/badge/lint-golangci--lint-4BC51C)](#)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Author](https://img.shields.io/badge/by-RLFreddy-gray?logo=github)](https://github.com/RLFreddy)
 
-![Demo](assets/demo.gif)
+> A concurrent data acquisition engine built in Go. Extracts, processes, and serializes market capitalization data from companiesmarketcap.com with caching, retry backoff, and race-condition-safe output.
 
-> A concurrent data acquisition engine built in Go. Extracts, processes, and serializes market capitalization data from companiesmarketcap.com with caching and race-condition-safe output.
-
-## Overview
-
-This project uses native HTTP requests via the Colly framework with Go's concurrency model. It discovers pagination dynamically, handles state in memory to avoid I/O bottlenecks, and outputs a sorted CSV dataset.
-
-## Features
-
-- **Concurrent extraction:** NumCPU × 2 workers, async requests via Colly
-- **Caching layer:** Built-in cache with 24-hour TTL, prevents redundant requests
-- **Pagination discovery:** Reads total company count and calculates pages automatically
-- **Thread-safe serialization:** Results aggregated via mutex-guarded slice, sorted by rank, written sequentially
-- **Docker-ready:** Multi-stage build, ~8MB image, runs as non-root user (UID 1001)
-
-## Quick Start (Docker)
-
-**1. Clone**
-
-```bash
-git clone https://github.com/RLFreddy/marketcap-acquisition-engine
-cd marketcap-acquisition-engine
-```
-
-**2. Build**
+## Docker
 
 ```bash
 docker build -t companies-scraper .
+
+docker run --rm -t \
+  -v ./output:/workspace \
+  -v ./config.yaml:/etc/scraper/config.yaml \
+  companies-scraper
 ```
 
-**3. Run (first page)**
+The CSV file is written to `./output/companies_YYYY-MM-DD.csv`.
+
+## Local Execution
 
 ```bash
-docker run --rm -t -v ./output:/workspace companies-scraper -pages 1
-```
-
-**3.1. Or extract all pages**
-
-```bash
-docker run --rm -t -v ./output:/workspace companies-scraper
-```
-
-## Local Execution (Go)
-
-```bash
-go mod download
 go build -o scraper ./cmd/scraper/
-
-# Extract first page (100 companies)
-./scraper -pages 1
-
-# Extract all pages
 ./scraper
 ```
 
-## Output
+## Configuration
 
-Generates `companies_YYYY-MM-DD.csv`:
+The scraper looks for `config.yaml` in this order:
+- `./config.yaml` (local development)
+- `/etc/scraper/config.yaml` (Docker mount)
+
+If neither is found, built-in defaults are used.
+
+```yaml
+scraper:
+  base_url: "https://companiesmarketcap.com"
+  pages: 0
+  workers: 0
+  delay: 500ms
+  cache_dir: "./colly_cache"
+  cache_ttl: 24h
+  retry_count: 3
+  retry_delay: 1s
+
+output:
+  dir: "."
+  filename_prefix: "companies_"
+```
+
+## Commands
+
+```bash
+make lint
+make test
+make cover
+make build
+make clean
+```
+
+## Output
 
 | Column     | Type    | Example       |
 | ---------- | ------- | ------------- |
@@ -78,21 +76,29 @@ Generates `companies_YYYY-MM-DD.csv`:
 ## Project Structure
 
 ```
-├── cmd/scraper/main.go          # Entry point, CLI flags
+├── .github/workflows/ci.yml
+├── .golangci.yml
+├── Makefile
+├── config.yaml
+├── cmd/scraper/main.go
 ├── internal/
-│   ├── domain/company.go        # Data structures
-│   ├── scraper/colly_scraper.go # Extraction, caching, concurrency
-│   ├── exporter/csv_exporter.go # CSV output, sorting
-│   └── logger/logger.go         # Colored stdout logging
+│   ├── config/config.go
+│   ├── domain/company.go
+│   ├── scraper/
+│   │   ├── scraper.go
+│   │   ├── colly_scraper.go
+│   │   ├── scraper_test.go
+│   │   └── testdata/
+│   ├── exporter/
+│   │   ├── csv_exporter.go
+│   │   └── csv_exporter_test.go
+│   └── logger/logger.go
 ├── Dockerfile
 ├── entrypoint.sh
-└── go.mod
+├── go.mod
+└── go.sum
 ```
 
 ## License
 
 MIT
-
----
-
-Built by [RLFreddy](https://github.com/RLFreddy)

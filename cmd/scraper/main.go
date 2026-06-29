@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -16,16 +15,11 @@ import (
 )
 
 func main() {
-	pagesFlag := flag.Int("pages", 0, "Number of pages to extract (0 = dynamic, extract all)")
-	configFlag := flag.String("config", "config.yaml", "Path to configuration file")
-	flag.Parse()
-
-	cfg, err := config.Load(*configFlag)
+	cfg, err := config.Load("config.yaml", "/etc/scraper/config.yaml")
 	if err != nil {
-		logger.Warn("Could not load config: %v, using defaults", err)
+		logger.Info("No config file found, using built-in defaults")
 		cfg = config.Default()
 	}
-	cfg = config.MergeWithFlags(cfg, *pagesFlag)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
