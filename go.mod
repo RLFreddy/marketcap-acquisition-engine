@@ -5,6 +5,7 @@ go 1.26.4
 require (
 	github.com/fatih/color v1.19.0
 	github.com/gocolly/colly/v2 v2.3.0
+	github.com/hashicorp/go-retryablehttp v0.7.8
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -19,7 +20,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

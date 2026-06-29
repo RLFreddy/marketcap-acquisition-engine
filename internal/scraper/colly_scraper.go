@@ -49,7 +49,7 @@ func (s *collyScraper) Run(ctx context.Context, cfg *config.Config) ([]domain.Co
 	if targetPages < 0 {
 		targetPages = 0
 	}
-	var totalNumPages int32 = int32(targetPages)
+	var totalNumPages = int32(targetPages)
 
 	cacheTTL := cfg.Scraper.CacheTTL
 	if cacheTTL == 0 {

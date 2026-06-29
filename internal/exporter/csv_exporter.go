@@ -23,7 +23,11 @@ func ExportToCSV(companies []domain.Company, fileName string) error {
 	if err != nil {
 		return fmt.Errorf("error creating csv file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Error("Error closing CSV file: %v", err)
+		}
+	}()
 
 	writer := csv.NewWriter(file)
 	defer func() {
