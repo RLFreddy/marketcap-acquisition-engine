@@ -5,8 +5,19 @@
 [![golangci-lint](https://img.shields.io/badge/lint-golangci--lint-4BC51C)](#)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Author](https://img.shields.io/badge/by-RLFreddy-gray?logo=github)](https://github.com/RLFreddy)
 
 > A concurrent data acquisition engine built in Go. Extracts, processes, and serializes market capitalization data from companiesmarketcap.com with caching, retry backoff, and race-condition-safe output.
+
+![Demo](assets/demo.gif)
+
+## Features
+
+- **Concurrent extraction** — NumCPU × 2 workers with async Colly requests
+- **Caching** — 24h TTL, avoids redundant HTTP requests
+- **Auto-pagination** — reads total count, calculates pages dynamically
+- **Retry with backoff** — exponential backoff on failed requests
+- **Docker-ready** — multi-stage build, ~22MB image, non-root user
 
 ## Docker
 
@@ -24,13 +35,16 @@ The CSV file is written to `./output/companies_YYYY-MM-DD.csv`.
 ## Local Execution
 
 ```bash
+# Ensure config.yaml is in the current directory
 go build -o scraper ./cmd/scraper/
+
 ./scraper
 ```
 
 ## Configuration
 
 The scraper looks for `config.yaml` in this order:
+
 - `./config.yaml` (local development)
 - `/etc/scraper/config.yaml` (Docker mount)
 
@@ -102,3 +116,7 @@ make clean
 ## License
 
 MIT
+
+---
+
+Built by [RLFreddy](https://github.com/RLFreddy)

@@ -1,9 +1,6 @@
 version: "2"
 run:
   tests: true
-  exclude-dirs:
-    - output/
-    - colly_cache/
 linters:
   enable:
     - errcheck
